@@ -1,20 +1,45 @@
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <title>演習課題5-2：外部APIの呼び出しテスト</title>
+    <title>演習課題5-2：GitHub APIの呼び出しテスト</title>
 </head>
 <body>
-    <h1 id="msg">何かのAPI</h1>
+    <h1 id="msg">GitHubユーザー検索</h1>
     <form name="apiform"><p>
-        何かのフォーム：<input type="text" name="form_data">
+        GitHubユーザー名：<input type="text" name="form_data" placeholder="例：octocat">
         <button type="button" id="btn1" onclick="some_api(this.form)">実行</button>
     </p></form>
     
     <div id="result"></div>
+
     <script>
         async function some_api(myForm) {
-            // ここにコードを書く
-            document.getElementById("result").innerHTML += myForm.form_data.value+"<br />";
+            const username = myForm.form_data.value.trim();
+            if (!username) {
+                document.getElementById("result").innerText = "ユーザー名を入力してください。";
+                return;
+            }
+
+            const url = `https://api.github.com/users/${username}`;
+
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("ユーザーが見つかりませんでした");
+                const data = await res.json();
+
+                const html = `
+                    <p><strong>名前：</strong>${data.name || "なし"}</p>
+                    <p><img src="${data.avatar_url}" width="100" /></p>
+                    <p><strong>場所：</strong>${data.location || "不明"}</p>
+                    <p><strong>フォロワー：</strong>${data.followers}</p>
+                    <p><a href="${data.html_url}" target="_blank">GitHubプロフィールへ</a></p>
+                `;
+                document.getElementById("result").innerHTML = html;
+            } catch (error) {
+                document.getElementById("result").innerText = error.message;
+            }
+
             document.apiform.reset();
         }
     </script>
